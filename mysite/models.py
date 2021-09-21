@@ -1,6 +1,12 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.urls import reverse
+
+
+class PublishedManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(status='published')
 
 
 class Post(models.Model):
@@ -8,6 +14,8 @@ class Post(models.Model):
         ('draft', 'Draft'),
         ('published', 'Published'),
     )
+    object = models.Manager
+    published = PublishedManager()
 
     # поле заголовка статьи
     title = models.CharField(max_length=250)
@@ -38,3 +46,8 @@ class Post(models.Model):
     """Метод возвращает отображение объекта, понятное человеку"""
     def __str__(self) -> str:
         return self.title
+
+    """Используем в HTML шаблонах, чтобы получать ссылку на статью"""
+    def get_absolute_url(self):
+        return reverse('mysite:post_detail', args=[self.publish.year, self.publish.month,
+                                                   self.publish.day, self.slug])
